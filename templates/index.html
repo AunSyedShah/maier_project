@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Success Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #0d6efd;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+        .form-text {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .prediction-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .prediction-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="hero-section">
+        <h1 class="mb-2">🎓 Student Success Prediction</h1>
+        <p class="mb-0">Predict whether a student will graduate or dropout using machine learning</p>
+    </div>
+
+    <!-- Error Alert -->
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error:</strong> {{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Prediction Result -->
+    {% if prediction %}
+    <div class="alert alert-{{ prediction_class }} alert-dismissible fade show" role="alert">
+        <h5 class="alert-heading">✓ Prediction Result</h5>
+        <strong>{{ prediction }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" class="mb-5">
+        <!-- Student Demographics Section -->
+        <div class="form-section">
+            <h5 class="section-title">📋 Student Demographics</h5>
+            <div class="row">
+                <!-- Marital Status -->
+                <div class="col-md-6 mb-3">
+                    <label for="Marital status" class="form-label">
+                        {{ feature_constraints['Marital status']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Marital status" name="Marital status" required>
+                        <option value="">-- Select --</option>
+                        {% for val in feature_constraints['Marital status']['values'] %}
+                        <option value="{{ val }}">Option {{ val }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text">Select your marital status category</small>
+                </div>
+
+                <!-- Gender -->
+                <div class="col-md-6 mb-3">
+                    <label for="Gender" class="form-label">
+                        {{ feature_constraints['Gender']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Gender" name="Gender" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">Female</option>
+                        <option value="1">Male</option>
+                    </select>
+                </div>
+
+                <!-- Age at Enrollment -->
+                <div class="col-md-6 mb-3">
+                    <label for="Age at enrollment" class="form-label">
+                        {{ feature_constraints['Age at enrollment']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="Age at enrollment" name="Age at enrollment"
+                           min="{{ feature_constraints['Age at enrollment']['min'] }}"
+                           max="{{ feature_constraints['Age at enrollment']['max'] }}" required>
+                    <small class="form-text">Age range: {{ feature_constraints['Age at enrollment']['min'] }}-{{ feature_constraints['Age at enrollment']['max'] }} years</small>
+                </div>
+
+                <!-- Nationality Category -->
+                <div class="col-md-6 mb-3">
+                    <label for="Application mode" class="form-label">
+                        {{ feature_constraints['Application mode']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Application mode" name="Application mode" required>
+                        <option value="">-- Select --</option>
+                        {% for val in feature_constraints['Application mode']['values'] %}
+                        <option value="{{ val }}">Mode {{ val }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text">Select application method/mode</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Background Section -->
+        <div class="form-section">
+            <h5 class="section-title">🎯 Academic Background & Qualifications</h5>
+            <div class="row">
+                <!-- Previous Qualification -->
+                <div class="col-md-6 mb-3">
+                    <label for="Previous qualification" class="form-label">
+                        {{ feature_constraints['Previous qualification']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Previous qualification" name="Previous qualification" required>
+                        <option value="">-- Select --</option>
+                        {% for val in feature_constraints['Previous qualification']['values'] %}
+                        <option value="{{ val }}">Qualification {{ val }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text">Your prior educational qualification level</small>
+                </div>
+
+                <!-- Scholarship Holder -->
+                <div class="col-md-6 mb-3">
+                    <label for="Scholarship holder" class="form-label">
+                        {{ feature_constraints['Scholarship holder']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Scholarship holder" name="Scholarship holder" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">No Scholarship</option>
+                        <option value="1">Has Scholarship</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Section -->
+        <div class="form-section">
+            <h5 class="section-title">💰 Financial Status</h5>
+            <div class="row">
+                <!-- Debtor Status -->
+                <div class="col-md-6 mb-3">
+                    <label for="Debtor" class="form-label">
+                        {{ feature_constraints['Debtor']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Debtor" name="Debtor" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">Not a Debtor</option>
+                        <option value="1">Is a Debtor</option>
+                    </select>
+                </div>
+
+                <!-- Tuition Fees Up to Date -->
+                <div class="col-md-6 mb-3">
+                    <label for="Tuition fees up to date" class="form-label">
+                        {{ feature_constraints['Tuition fees up to date']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Tuition fees up to date" name="Tuition fees up to date" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+
+                <!-- Displaced -->
+                <div class="col-md-6 mb-3">
+                    <label for="Displaced" class="form-label">
+                        {{ feature_constraints['Displaced']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="Displaced" name="Displaced" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">Not Displaced</option>
+                        <option value="1">Displaced</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Performance Section -->
+        <div class="form-section">
+            <h5 class="section-title">📚 Academic Performance - 1st Semester</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 1st sem (approved)" class="form-label">
+                        {{ feature_constraints['Curricular units 1st sem (approved)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="Curricular units 1st sem (approved)"
+                           name="Curricular units 1st sem (approved)"
+                           min="{{ feature_constraints['Curricular units 1st sem (approved)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 1st sem (approved)']['max'] }}" required>
+                    <small class="form-text">Units: 0-60</small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 1st sem (grade)" class="form-label">
+                        {{ feature_constraints['Curricular units 1st sem (grade)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="Curricular units 1st sem (grade)"
+                           name="Curricular units 1st sem (grade)"
+                           min="{{ feature_constraints['Curricular units 1st sem (grade)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 1st sem (grade)']['max'] }}" required>
+                    <small class="form-text">Grade: 0-20</small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 1st sem (without evaluations)" class="form-label">
+                        {{ feature_constraints['Curricular units 1st sem (without evaluations)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="Curricular units 1st sem (without evaluations)"
+                           name="Curricular units 1st sem (without evaluations)"
+                           min="{{ feature_constraints['Curricular units 1st sem (without evaluations)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 1st sem (without evaluations)']['max'] }}" required>
+                    <small class="form-text">Units: 0-60</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h5 class="section-title">📚 Academic Performance - 2nd Semester</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 2nd sem (approved)" class="form-label">
+                        {{ feature_constraints['Curricular units 2nd sem (approved)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="Curricular units 2nd sem (approved)"
+                           name="Curricular units 2nd sem (approved)"
+                           min="{{ feature_constraints['Curricular units 2nd sem (approved)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 2nd sem (approved)']['max'] }}" required>
+                    <small class="form-text">Units: 0-60</small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 2nd sem (grade)" class="form-label">
+                        {{ feature_constraints['Curricular units 2nd sem (grade)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" step="0.01" class="form-control" id="Curricular units 2nd sem (grade)"
+                           name="Curricular units 2nd sem (grade)"
+                           min="{{ feature_constraints['Curricular units 2nd sem (grade)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 2nd sem (grade)']['max'] }}" required>
+                    <small class="form-text">Grade: 0-20</small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Curricular units 2nd sem (without evaluations)" class="form-label">
+                        {{ feature_constraints['Curricular units 2nd sem (without evaluations)']['label'] }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="Curricular units 2nd sem (without evaluations)"
+                           name="Curricular units 2nd sem (without evaluations)"
+                           min="{{ feature_constraints['Curricular units 2nd sem (without evaluations)']['min'] }}"
+                           max="{{ feature_constraints['Curricular units 2nd sem (without evaluations)']['max'] }}" required>
+                    <small class="form-text">Units: 0-60</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-5">
+            <button type="submit" class="btn btn-primary btn-lg">
+                🔮 Predict Student Outcome
+            </button>
+            <button type="reset" class="btn btn-secondary btn-lg">
+                🔄 Clear Form
+            </button>
+        </div>
+    </form>
+
+    <!-- Footer -->
+    <footer class="text-center text-muted mt-5 pt-5 pb-5">
+        <small>Student Success Prediction System • Powered by Machine Learning (XGBoost)</small>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Client-side validation feedback
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+</script>
+</body>
+</html>
