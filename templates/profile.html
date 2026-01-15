@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Profile - Student Success{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="mb-2">Profile</h1>
+    <p class="mb-0">User information</p>
+</div>
+
+<div class="card mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+        <h5 class="card-title">{{ current_user.email }}</h5>
+        <p class="card-text">Basic account profile</p>
+    </div>
+</div>
+{% endblock %}

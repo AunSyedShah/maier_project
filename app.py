@@ -1,10 +1,24 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import joblib
 import numpy as np
 import pandas as pd
 import os
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
+# Application configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize extensions
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'auth.login'
+csrf = CSRFProtect(app)
 
 # Get the base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +38,33 @@ CATEGORICAL_FEATURES = joblib.load(os.path.join(BASE_DIR, 'categorical_features.
 
 # Load original features in the correct order (must match training data)
 ALL_ORIGINAL_FEATURES = joblib.load(os.path.join(BASE_DIR, 'original_columns.joblib'))
+
+# --- User model for authentication ---
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+def init_db():
+    """Create (reset) database tables.
+
+    Drops all tables and recreates them. This is useful for testing and dev
+    environments to ensure a clean state.
+    """
+    db.drop_all()
+    db.create_all()
 
 # Define data type and range constraints for each feature
 FEATURE_CONSTRAINTS = {
@@ -107,6 +148,7 @@ def validate_input(data):
 
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     prediction = None
     prediction_class = None
@@ -182,5 +224,17 @@ def api_predict():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/profile')
+@login_required
+def profile():
+    """Simple protected profile page for logged-in users."""
+    return render_template('profile.html')
+
+# Register blueprints
+from auth import auth_bp
+app.register_blueprint(auth_bp)
+
 if __name__ == '__main__':
+    # Ensure database exists
+    init_db()
     app.run(debug=True)

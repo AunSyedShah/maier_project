@@ -84,9 +84,15 @@ Expected Response:
 # Test preprocessing pipeline
 python test_preprocessing.py
 
+# Run unit tests
+pip install -r requirements.txt
+pytest -q
+
+# You can also initialize the database manually (optional):
+python -c "from app import init_db; init_db()"
+
 # Expected output: ✓ SUCCESS: Preprocessing pipeline works correctly!
 ```
-
 ---
 
 ## 📚 Features at a Glance

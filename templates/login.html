@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Login - Student Success{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="mb-2">Login</h1>
+    <p class="mb-0">Access your account to manage predictions.</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.email.label(class_='form-label') }}
+                        {{ form.email(class_='form-control') }}
+                        {% for err in form.email.errors %}
+                        <div class="text-danger small">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class_='form-label') }}
+                        {{ form.password(class_='form-control') }}
+                        {% for err in form.password.errors %}
+                        <div class="text-danger small">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class_='btn btn-primary') }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
